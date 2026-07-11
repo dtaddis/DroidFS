@@ -102,6 +102,9 @@ Android release-signing certificate:
 
 `E6:E2:17:40:D7:D2:09:45:54:EC:C4:A8:33:90:98:E2:7A:4E:4B:C2:74:2F:94:3C:90:61:F4:72:94:CD:5A:71`
 
+The public certificate is also committed at
+[`docs/release-certificate.pem`](docs/release-certificate.pem).
+
 Verify a downloaded APK with Android SDK Build Tools:
 
 ```

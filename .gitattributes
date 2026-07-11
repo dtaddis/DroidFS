@@ -4,3 +4,4 @@
 *.xml text eol=lf
 *.gradle text eol=lf
 *.txt text eol=lf
+*.pem text eol=lf
