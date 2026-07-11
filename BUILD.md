@@ -57,13 +57,13 @@ Fingerprint: `B64E FE86 CEE1 D054 F082  1711 AFE3 8434 4A45 E13A` \
 Email: `Hardcore Sushi <hardcore.sushi@disroot.org>`
 
 # Download sources
-Download DroidFS source code:
+Download DroidFS Video source code:
 ```
-$ git clone --depth=1 https://forge.chapril.org/hardcoresushi/DroidFS.git
+$ git clone --depth=1 --recurse-submodules https://github.com/dtaddis/DroidFS-Video.git
 ```
 Verify sources:
 ```
-$ cd DroidFS
+$ cd DroidFS-Video
 $ git verify-commit HEAD
 ```
 __Don't continue if the verification fails!__

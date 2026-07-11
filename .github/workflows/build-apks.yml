@@ -68,18 +68,91 @@ jobs:
       - name: Build unsigned release APK
         run: ./gradlew assembleRelease -Pabi="${{ matrix.abi }}" -Pnouniversal --no-daemon
 
+      - name: Prepare unsigned branch artifact
+        if: github.ref_type != 'tag'
+        shell: bash
+        run: |
+          mkdir -p release-artifacts
+          apk="$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk' -print -quit)"
+          test -n "$apk"
+          cp "$apk" "release-artifacts/$(basename "${apk%.apk}")-unsigned.apk"
+
+      - name: Sign and verify tagged release APK
+        if: github.ref_type == 'tag'
+        shell: bash
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+        run: |
+          test -n "$RELEASE_KEYSTORE_BASE64"
+          test -n "$RELEASE_KEYSTORE_PASSWORD"
+          test -n "$RELEASE_KEY_ALIAS"
+          keystore="$RUNNER_TEMP/DroidFS-Video-release.p12"
+          printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          mkdir -p release-artifacts
+          apk="$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk' -print -quit)"
+          test -n "$apk"
+          signed="release-artifacts/$(basename "${apk%.apk}")-signed.apk"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" sign \
+            --ks "$keystore" \
+            --ks-type PKCS12 \
+            --ks-key-alias "$RELEASE_KEY_ALIAS" \
+            --ks-pass env:RELEASE_KEYSTORE_PASSWORD \
+            --key-pass env:RELEASE_KEYSTORE_PASSWORD \
+            --out "$signed" \
+            "$apk"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify \
+            --verbose \
+            --print-certs \
+            "$signed"
+          rm -f "$keystore"
+
       - name: Generate SHA-256 checksums
         shell: bash
         run: |
-          cd app/build/outputs/apk/release
+          cd release-artifacts
           sha256sum *.apk > "SHA256SUMS-${{ matrix.abi }}.txt"
 
-      - name: Upload unsigned APK artifact
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v7
         with:
-          name: DroidFS-Video-unsigned-${{ matrix.abi }}-${{ github.sha }}
-          path: |
-            app/build/outputs/apk/release/*.apk
-            app/build/outputs/apk/release/SHA256SUMS-${{ matrix.abi }}.txt
+          name: DroidFS-Video-${{ github.ref_type == 'tag' && 'signed' || 'unsigned' }}-${{ matrix.abi }}-${{ github.sha }}
+          path: release-artifacts/
           if-no-files-found: error
           retention-days: 7
+
+  release:
+    name: Publish GitHub Release
+    if: github.ref_type == 'tag'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download signed APK artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: DroidFS-Video-signed-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > release-notes.md <<'EOF'
+          DroidFS Video is an unofficial, independently maintained DroidFS
+          edition focused on improved private video playback.
+
+          Choose the APK matching your device ABI. Most current Android phones
+          use arm64-v8a. Verify the APK checksum and signing certificate before
+          installation.
+
+          Signing certificate SHA-256:
+          E6:E2:17:40:D7:D2:09:45:54:EC:C4:A8:33:90:98:E2:7A:4E:4B:C2:74:2F:94:3C:90:61:F4:72:94:CD:5A:71
+          EOF
+          gh release create "$GITHUB_REF_NAME" release-assets/* \
+            --title "DroidFS Video $GITHUB_REF_NAME" \
+            --notes-file release-notes.md \
+            --verify-tag

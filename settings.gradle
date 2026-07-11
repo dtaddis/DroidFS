@@ -16,4 +16,4 @@ pluginManagement {
 }
 include ':app', ':libpdfviewer'
 project(':libpdfviewer').projectDir = file('libpdfviewer/app')
-rootProject.name = "DroidFS"
+rootProject.name = "DroidFS-Video"

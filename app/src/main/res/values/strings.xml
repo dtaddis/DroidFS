@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DroidFS</string>
+    <string name="app_name">DroidFS Video</string>
     <string name="create_volume">Create volume</string>
     <string name="open">Open</string>
     <string name="create">Create</string>
@@ -107,6 +107,11 @@
     <string name="github_summary">The DroidFS repository on GitHub. Source code, documentation, bug tracker…</string>
     <string name="gitea">Gitea</string>
     <string name="gitea_summary">The DroidFS repository on the Chapril Gitea instance. Unlike GitHub, Gitea is fully free software and self-hosted. Source code, documentation, bug tracker…</string>
+    <string name="fork_repository">DroidFS Video on GitHub</string>
+    <string name="fork_repository_summary">Source code, releases and issue tracker for this unofficial video-focused edition.</string>
+    <string name="upstream_repository">Upstream DroidFS project</string>
+    <string name="upstream_repository_summary">The original DroidFS project by Hardcore Sushi.</string>
+    <string name="logcat_summary">View the DroidFS Video logcat</string>
     <string name="share">Share</string>
     <string name="decrypt_files">Export/Decrypt</string>
     <string name="copy_failed">Copy of %s failed.</string>

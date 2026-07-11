@@ -1,5 +1,5 @@
 <resources>sort_order
-    <string name="app_name">DroidFS</string>
+    <string name="app_name">DroidFS Video</string>
     <string name="create_volume">إنشاء مجلد مشفر</string>
     <string name="open">فتح</string>
     <string name="create">إنشاء</string>

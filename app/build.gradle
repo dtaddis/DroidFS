@@ -31,11 +31,11 @@ android {
     def abiCodes  = [ "x86": 1, "x86_64": 2, "armeabi-v7a": 3, "arm64-v8a": 4]
 
     defaultConfig {
-        applicationId "sushi.hardcore.droidfs"
+        applicationId "io.github.dtaddis.droidfsvideo"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 37
-        versionName "2.2.0"
+        versionCode 3701
+        versionName "2.2.0-video.1"
 
         splits {
             abi {
@@ -72,7 +72,7 @@ android {
             } else {
                 output.versionCodeOverride = variant.versionCode*10 + abiCodes[abi]
             }
-            output.outputFileName = "DroidFS-v${variant.versionName}-${variant.name}-${abi}.apk"
+            output.outputFileName = "DroidFS-Video-v${variant.versionName}-${variant.name}-${abi}.apk"
         }
     }
 

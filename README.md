@@ -1,8 +1,28 @@
-# DroidFS
-An alternative way to use encrypted virtual filesystems on Android that uses its own internal file explorer instead of mounting volumes.
-It currently supports [gocryptfs](https://github.com/rfjakob/gocryptfs) and [CryFS](https://github.com/cryfs/cryfs).
+# DroidFS Video
 
-For mortals: Encrypted storage compatible with already existing softwares.
+An unofficial, independently maintained edition of
+[DroidFS](https://github.com/hardcore-sushi/DroidFS) focused on capable,
+private video playback inside encrypted volumes.
+
+This project is not produced, endorsed or supported by the original DroidFS
+developer. DroidFS was created by Hardcore Sushi; this fork preserves the
+original attribution and AGPL-3.0 licence while publishing its modifications
+and build source.
+
+[Download the latest release](https://github.com/dtaddis/DroidFS-Video/releases/latest)
+
+## Video edition improvements
+
+- LibVLC playback with broader container and codec support
+- User-configurable file-extension handling
+- Fit, fill, horizontal and vertical video sizing
+- Repeat, playlist and A/B repeat controls
+- Swipe brightness, volume and scrubbing gestures
+- Secure range-based playback on Android 8.0 and newer
+- Explicit safety checks for legacy Android versions and large text files
+
+Like upstream DroidFS, the app supports encrypted gocryptfs and CryFS volumes
+through its own internal file explorer instead of mounting them.
 
 <p align="center">
 <img src="https://forge.chapril.org/hardcoresushi/DroidFS/raw/branch/master/fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" height="500">
@@ -10,10 +30,12 @@ For mortals: Encrypted storage compatible with already existing softwares.
 <img src="https://forge.chapril.org/hardcoresushi/DroidFS/raw/branch/master/fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" height="500">
 </p>
 
-# Support
-The creator of DroidFS works as a freelance developer and privacy consultant. I am currently looking for new clients! If you are interested, take a look at the [website](https://arkensys.dedyn.io). Alternatively, you can directly support DroidFS by making a [donation](https://forge.chapril.org/hardcoresushi/DroidFS/src/branch/master/DONATE.txt).
+# Support and attribution
 
-Thank you so much ❤️.
+Report problems specific to this edition through its
+[GitHub issue tracker](https://github.com/dtaddis/DroidFS-Video/issues).
+Upstream DroidFS is maintained by Hardcore Sushi, whose work can be supported
+through the [original donation information](https://forge.chapril.org/hardcoresushi/DroidFS/src/branch/master/DONATE.txt).
 
 # Disclaimer
 DroidFS is provided "as is", without any warranty of any kind.
@@ -71,27 +93,25 @@ Some available features are considered risky and are therefore disabled by defau
 ⁽¹⁾: These features can work in two ways: temporarily writing the plain file to disk (DroidFS internal storage) or sharing it via memory. By default, DroidFS will choose to keep the file only in memory as it's more secure, but will fallback to disk export if the file is too large to be held in memory. This behavior can be changed with the *"Export method"* parameter in the settings. Please note that some applications require the file to be stored on disk, and therefore do not work with memory-exported files.
 
 # Download
-<a href="https://f-droid.org/packages/sushi.hardcore.droidfs">
-	<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="75">
-</a>
 
-You can download DroidFS from [F-Droid](https://f-droid.org/packages/sushi.hardcore.droidfs) or from the "Releases" section in this repository.
+Installable APKs are published in this repository's
+[Releases section](https://github.com/dtaddis/DroidFS-Video/releases). Each
+release contains per-ABI APKs and SHA-256 checksums.
 
-APKs available here are signed with my PGP key available on keyservers:
+Android release-signing certificate:
 
-`gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys AFE384344A45E13A` \
-Fingerprint: `B64E FE86 CEE1 D054 F082  1711 AFE3 8434 4A45 E13A` \
-Email: `Hardcore Sushi <hardcore.sushi@disroot.org>`
+`E6:E2:17:40:D7:D2:09:45:54:EC:C4:A8:33:90:98:E2:7A:4E:4B:C2:74:2F:94:3C:90:61:F4:72:94:CD:5A:71`
 
-To verify APKs, save the PGP-signed message to a file and run `gpg --verify <the file>`.  __Don't install any APK if the verification fails !__
+Verify a downloaded APK with Android SDK Build Tools:
 
-If the signature is valid, you can compare the SHA256 checksums with:
 ```
-sha256sum <APK file>
+apksigner verify --verbose --print-certs <APK file>
 ```
-__Don't install the APK if the checksums don't match!__
 
-F-Droid APKs should be signed with the F-Droid key. More details [here](https://f-droid.org/docs/Release_Channels_and_Signing_Keys).
+The official DroidFS package remains available from
+[F-Droid](https://f-droid.org/packages/sushi.hardcore.droidfs). DroidFS Video
+uses a separate Android application ID and signing key, so both apps can be
+installed together. It is not an update for the official package.
 
 # Permissions
 DroidFS needs some permissions for certain features. However, you are free to deny them if you do not wish to use these features.
@@ -105,7 +125,11 @@ DroidFS needs some permissions for certain features. However, you are free to de
 # Limitations
 DroidFS works as a wrapper around modified versions of the original encrypted container implementations ([libgocryptfs](https://forge.chapril.org/hardcoresushi/libgocryptfs) and [libcryfs](https://forge.chapril.org/hardcoresushi/libcryfs)). These programs were designed to run on standard x86 Linux systems: they access the underlying file system with file paths and syscalls. However, on Android, you can't access files from other applications using file paths. Instead, one has to use the [ContentProvider](https://developer.android.com/guide/topics/providers/content-providers) API. Obviously, neither Gocryptfs nor CryFS support this API. As a result, DroidFS cannot open volumes provided by other applications (such as cloud storage clients). If you want to synchronize your volumes on a cloud, the cloud application must synchronize the encrypted directory from disk.
 
-Due to Android's storage restrictions, encrypted volumes located on SD cards must be placed under `/Android/data/sushi.hardcore.droidfs/` if you want DroidFS to be able to modify them.
+Due to Android's storage restrictions, encrypted volumes located on SD cards
+must be placed under `/Android/data/io.github.dtaddis.droidfsvideo/` if you
+want DroidFS Video to modify them. Existing volumes in the official app's
+private or app-specific storage are not migrated automatically; back them up
+and reopen or copy them deliberately.
 
 # Building from source
 You can follow the instructions in [BUILD.md](BUILD.md) to build DroidFS from source.
@@ -124,3 +148,4 @@ Thanks to these open source projects that DroidFS uses:
 ### Libraries:
 - [Glide](https://github.com/bumptech/glide) to display pictures
 - [ExoPlayer](https://github.com/google/ExoPlayer) to play media files
+- [libVLC](https://www.videolan.org/vlc/libvlc.html) for expanded video playback support

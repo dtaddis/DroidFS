@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DroidFS</string>
+    <string name="app_name">DroidFS Video</string>
     <string name="create_volume">创建加密卷</string>
     <string name="open">打开</string>
     <string name="create">创建</string>

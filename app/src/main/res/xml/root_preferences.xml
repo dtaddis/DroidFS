@@ -123,7 +123,7 @@
         <Preference
             android:key="logcat"
             android:title="Logcat"
-            android:summary="View the DroidFS logcat"
+            android:summary="@string/logcat_summary"
             android:icon="@drawable/icon_debug"/>
 
     </PreferenceCategory>
@@ -131,15 +131,15 @@
     <PreferenceCategory android:title="@string/about">
 
         <Preference
-            android:title="@string/github"
-            android:summary="@string/github_summary"
+            android:title="@string/fork_repository"
+            android:summary="@string/fork_repository_summary"
             android:icon="@drawable/icon_github">
-            <intent android:action="android.intent.action.VIEW" android:data="https://github.com/hardcore-sushi/DroidFS"/>
+            <intent android:action="android.intent.action.VIEW" android:data="https://github.com/dtaddis/DroidFS-Video"/>
         </Preference>
 
         <Preference
-            android:title="@string/gitea"
-            android:summary="@string/gitea_summary"
+            android:title="@string/upstream_repository"
+            android:summary="@string/upstream_repository_summary"
             android:icon="@drawable/icon_gitea">
             <intent android:action="android.intent.action.VIEW" android:data="https://forge.chapril.org/hardcoresushi/DroidFS"/>
         </Preference>
