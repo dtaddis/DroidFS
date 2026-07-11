@@ -9,4 +9,4 @@
 	url = https://github.com/hardcore-sushi/libcryfs.git
 [submodule "app/ffmpeg/ffmpeg"]
 	path = app/ffmpeg/ffmpeg
-	url = https://git.ffmpeg.org/ffmpeg.git
+	url = https://github.com/FFmpeg/FFmpeg.git

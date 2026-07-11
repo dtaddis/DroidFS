@@ -12,8 +12,9 @@ default branch; manual runs build all four supported Android ABIs. Version tags
 beginning with `v` also build every ABI.
 
 The root submodules use the original author's GitHub mirrors because GitHub's
-hosted runners cannot connect reliably to `forge.chapril.org`. The pinned
-submodule commit IDs are unchanged.
+hosted runners cannot connect reliably to `forge.chapril.org`. FFmpeg uses its
+official GitHub mirror because its canonical server rejects shallow retrieval
+of the pinned commit. All pinned submodule commit IDs are unchanged.
 
 Workflow artifacts are deliberately labelled **unsigned** and expire after
 seven days. Unsigned APKs cannot be installed and must not be published as a
