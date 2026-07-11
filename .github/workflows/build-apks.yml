@@ -15,6 +15,8 @@ on:
           - x86
           - all
   push:
+    branches:
+      - droidfs-video
     tags:
       - "v*"
 
@@ -28,7 +30,12 @@ concurrency:
 jobs:
   build:
     name: Build ${{ matrix.abi }} APK
-    if: github.event_name != 'workflow_dispatch' || inputs.abi == 'all' || inputs.abi == matrix.abi
+    if: >-
+      (github.event_name == 'workflow_dispatch' &&
+      (inputs.abi == 'all' || inputs.abi == matrix.abi)) ||
+      github.ref_type == 'tag' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/droidfs-video' &&
+      matrix.abi == 'arm64-v8a')
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
