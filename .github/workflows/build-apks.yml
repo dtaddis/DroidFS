@@ -53,7 +53,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes build-essential pkg-config npm
-          sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;25.2.9519653"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platforms;android-35" \
+            "build-tools;35.0.0" \
+            "ndk;25.2.9519653"
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> "$GITHUB_ENV"
 
       - name: Build FFmpeg for ${{ matrix.abi }}
