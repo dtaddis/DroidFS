@@ -36,8 +36,8 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
           cat > release-notes.md <<'EOF'
-          First independent DroidFS Video release, based on DroidFS with the
-          enhanced libVLC video player.
+          DroidFS Video is an unofficial, independently maintained DroidFS
+          edition focused on improved private video playback.
 
           Choose the APK matching your device ABI. Most current Android phones
           use arm64-v8a. Verify the APK checksum and signing certificate before

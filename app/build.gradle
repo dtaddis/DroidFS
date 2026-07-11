@@ -34,8 +34,8 @@ android {
         applicationId "io.github.dtaddis.droidfsvideo"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 3701
-        versionName "2.2.0-video.1"
+        versionCode 3702
+        versionName "2.2.0-video.2"
 
         splits {
             abi {
