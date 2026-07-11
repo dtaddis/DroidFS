@@ -8,9 +8,8 @@ upstream DroidFS.
 
 Every push to `droidfs-video` builds an ARM64 APK. The **Build APKs** workflow
 can also be started from the repository's **Actions** page once this is the
-default branch. An ARM64 build is the default; select **all** to build APKs for
-all four supported Android ABIs. Version tags beginning with `v` also build
-every ABI.
+default branch; manual runs build all four supported Android ABIs. Version tags
+beginning with `v` also build every ABI.
 
 Workflow artifacts are deliberately labelled **unsigned** and expire after
 seven days. Unsigned APKs cannot be installed and must not be published as a

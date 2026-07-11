@@ -2,18 +2,6 @@ name: Build APKs
 
 on:
   workflow_dispatch:
-    inputs:
-      abi:
-        description: Android ABI to build
-        required: true
-        default: arm64-v8a
-        type: choice
-        options:
-          - arm64-v8a
-          - armeabi-v7a
-          - x86_64
-          - x86
-          - all
   push:
     branches:
       - droidfs-video
@@ -30,22 +18,12 @@ concurrency:
 jobs:
   build:
     name: Build ${{ matrix.abi }} APK
-    if: >-
-      (github.event_name == 'workflow_dispatch' &&
-      (inputs.abi == 'all' || inputs.abi == matrix.abi)) ||
-      github.ref_type == 'tag' ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/droidfs-video' &&
-      matrix.abi == 'arm64-v8a')
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
-        abi:
-          - arm64-v8a
-          - armeabi-v7a
-          - x86_64
-          - x86
+        abi: ${{ fromJSON((github.event_name == 'push' && github.ref_type == 'branch' && '["arm64-v8a"]') || '["arm64-v8a","armeabi-v7a","x86_64","x86"]') }}
 
     steps:
       - name: Check out source and submodules
