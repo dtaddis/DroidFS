@@ -1,0 +1,27 @@
+# Release process
+
+This branch contains the independently maintained DroidFS Video edition. The
+`video-player-improvements` branch remains limited to the changes proposed to
+upstream DroidFS.
+
+## Automated builds
+
+The **Build APKs** workflow can be started from the repository's **Actions**
+page. An ARM64 build is the default; select **all** to build APKs for all four
+supported Android ABIs. Version tags beginning with `v` also build every ABI.
+
+Workflow artifacts are deliberately labelled **unsigned** and expire after
+seven days. Unsigned APKs cannot be installed and must not be published as a
+release. The workflow also generates SHA-256 checksum files for the APKs.
+
+## Signing
+
+Create one permanent release keystore and keep it outside this repository.
+Back it up securely: Android will not accept future updates signed by a
+different key.
+
+Until automated signing is configured with GitHub Actions secrets, sign each
+APK locally using the Android SDK's `apksigner`, verify it, regenerate the
+SHA-256 checksums, and upload the signed APKs and checksums to a GitHub Release.
+
+Never commit a keystore, its passwords, or decoded signing material.
