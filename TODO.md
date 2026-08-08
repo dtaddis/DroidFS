@@ -1,6 +1,10 @@
 # TODO
 
-Here's a list of features that it would be nice to have in DroidFS. As this is a FLOSS project, there are no special requirements on *when* or even *if* these features will be implemented, but contributions are greatly appreciated.
+This is the inherited upstream DroidFS roadmap. DroidFS Video-specific feature
+requests and playback improvements are tracked in the
+[fork's issue tracker](https://github.com/dtaddis/DroidFS-Video/issues). As this
+is a FLOSS project, there are no special requirements on *when* or even *if*
+these features will be implemented, but contributions are greatly appreciated.
 
 ## Security
 - [hardened_malloc](https://github.com/GrapheneOS/hardened_malloc) compatibility ([#181](https://github.com/hardcore-sushi/DroidFS/issues/181))
@@ -26,5 +30,5 @@ Here's a list of features that it would be nice to have in DroidFS. As this is a
 - Automated tests
 
 ## And:
-- All the [feature requests on the GitHub repo](https://github.com/hardcore-sushi/DroidFS/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement)
-- All the [feature requests on the Gitea repo](https://forge.chapril.org/hardcoresushi/DroidFS/issues?q=&state=open&labels=748)
+- All the [feature requests on the upstream GitHub repo](https://github.com/hardcore-sushi/DroidFS/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement)
+- All the [feature requests on the upstream Gitea repo](https://forge.chapril.org/hardcoresushi/DroidFS/issues?q=&state=open&labels=748)

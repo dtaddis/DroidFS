@@ -1,13 +1,17 @@
 # DroidFS Video
 
-An unofficial, independently maintained edition of
-[DroidFS](https://github.com/hardcore-sushi/DroidFS) focused on capable,
-private video playback inside encrypted volumes.
+An unofficial, independently maintained downstream branch of
+[DroidFS](https://github.com/hardcore-sushi/DroidFS), with additional video
+support and playback features for media stored inside encrypted volumes.
 
 This project is not produced, endorsed or supported by the original DroidFS
 developer. DroidFS was created by Hardcore Sushi; this fork preserves the
 original attribution and AGPL-3.0 licence while publishing its modifications
 and build source.
+
+The `droidfs-video` branch tracks upstream DroidFS while keeping this edition's
+video-specific work separate. Changes intended for the original project can
+still be proposed upstream independently.
 
 [Download the latest release](https://github.com/dtaddis/DroidFS-Video/releases/latest)
 
@@ -51,7 +55,7 @@ Do not use this app with volumes containing sensitive data unless you know exact
 - Unlocking volumes using fingerprint authentication
 - Volume auto-locking when the app goes in background
 
-For planned features, see [TODO.md](https://forge.chapril.org/hardcoresushi/DroidFS/src/branch/master/TODO.md).
+For planned features, see [TODO.md](TODO.md).
 
 # Unsafe features
 Some available features are considered risky and are therefore disabled by default. It is strongly recommended that you read the following documentation if you wish to activate one of these options.
@@ -97,7 +101,7 @@ Some available features are considered risky and are therefore disabled by defau
 
 Installable APKs are published in this repository's
 [Releases section](https://github.com/dtaddis/DroidFS-Video/releases). Each
-release contains per-ABI APKs and SHA-256 checksums.
+release contains signed per-ABI APKs, signature sidecars and SHA-256 checksums.
 
 Android release-signing certificate:
 
@@ -136,7 +140,8 @@ private or app-specific storage are not migrated automatically; back them up
 and reopen or copy them deliberately.
 
 # Building from source
-You can follow the instructions in [BUILD.md](BUILD.md) to build DroidFS from source.
+You can follow the instructions in [BUILD.md](BUILD.md) to build DroidFS Video
+from source.
 
 # Third party code
 Thanks to these open source projects that DroidFS uses:
@@ -150,6 +155,9 @@ Thanks to these open source projects that DroidFS uses:
 ### Borrowed code:
 - [MaterialFiles](https://github.com/zhanghai/MaterialFiles) for Kotlin natural sorting implementation
 ### Libraries:
-- [Glide](https://github.com/bumptech/glide) to display pictures
-- [ExoPlayer](https://github.com/google/ExoPlayer) to play media files
+- [Coil](https://coil-kt.github.io/coil/) to display images and video thumbnails
+- [AndroidX Media3](https://developer.android.com/media/media3) to play audio files
 - [libVLC](https://www.videolan.org/vlc/libvlc.html) for expanded video playback support
+- [RIFE-ncnn-vulkan](https://github.com/nihui/rife-ncnn-vulkan) and
+  [ncnn](https://github.com/Tencent/ncnn) for optional Vulkan-accelerated Smooth
+  Slo-Mo frame interpolation
