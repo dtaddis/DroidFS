@@ -57,7 +57,7 @@ jobs:
       - name: Install native build prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install --yes build-essential pkg-config
+          sudo apt-get install --yes build-essential nasm pkg-config
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
             "platforms;android-37.0" \
             "build-tools;37.0.0" \
