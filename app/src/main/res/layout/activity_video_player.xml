@@ -62,7 +62,7 @@
                 android:indeterminate="false"
                 android:max="100"
                 android:progressBackgroundTint="#55FFFFFF"
-                android:progressTint="@color/secondary" />
+                android:progressTint="?attr/colorAccent" />
 
             <TextView
                 android:id="@+id/text_gesture_feedback"
@@ -70,7 +70,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:gravity="end"
-                android:textColor="@color/textColor"
+                android:textColor="@color/neutralIconTint"
                 android:textSize="14sp" />
 
         </LinearLayout>
@@ -90,7 +90,7 @@
                 android:id="@+id/text_scrub_position"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/textColor"
+                android:textColor="@color/neutralIconTint"
                 android:textSize="22sp"
                 android:textStyle="bold" />
 
@@ -111,7 +111,7 @@
                 android:indeterminate="false"
                 android:max="1000"
                 android:progressBackgroundTint="#55FFFFFF"
-                android:progressTint="@color/secondary" />
+                android:progressTint="?attr/colorAccent" />
 
         </LinearLayout>
 
@@ -159,7 +159,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="0:00"
-                    android:textColor="@color/textColor"
+                    android:textColor="@color/neutralIconTint"
                     android:textSize="12sp" />
 
                 <SeekBar
@@ -175,7 +175,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="0:00"
-                    android:textColor="@color/textColor"
+                    android:textColor="@color/neutralIconTint"
                     android:textSize="12sp" />
 
             </LinearLayout>
@@ -207,7 +207,7 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:gravity="center"
                         android:text="@string/playback_rate_normal"
-                        android:textColor="@color/textColor"
+                        android:textColor="@color/neutralIconTint"
                         android:textSize="13sp"
                         android:textStyle="bold" />
 
@@ -243,7 +243,7 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:gravity="center"
                         android:text="@string/ab_repeat_start_short"
-                        android:textColor="@color/textColor"
+                        android:textColor="@color/neutralIconTint"
                         android:textSize="13sp"
                         android:textStyle="bold" />
 
@@ -254,7 +254,7 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:gravity="center"
                         android:text="@string/ab_repeat_end_short"
-                        android:textColor="@color/textColor"
+                        android:textColor="@color/neutralIconTint"
                         android:textSize="13sp"
                         android:textStyle="bold" />
 
@@ -302,6 +302,7 @@
             android:singleLine="true"
             android:ellipsize="end"
             android:textSize="@dimen/title_file_name_text_size"
+            android:textColor="@color/white"
             android:layout_alignParentStart="true"
             android:layout_toStartOf="@id/rotate_button"
             android:layout_centerVertical="true"/>

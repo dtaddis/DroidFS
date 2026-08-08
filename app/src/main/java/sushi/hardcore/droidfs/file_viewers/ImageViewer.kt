@@ -19,19 +19,19 @@ import coil3.request.target
 import coil3.request.transformations
 import coil3.size.Size
 import coil3.transform.Transformation
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import sushi.hardcore.droidfs.Constants
 import sushi.hardcore.droidfs.R
+import sushi.hardcore.droidfs.VolumeManagerApp
 import sushi.hardcore.droidfs.databinding.ActivityImageViewerBinding
-import sushi.hardcore.droidfs.filesystems.EncryptedFileReaderFileSystem
-import sushi.hardcore.droidfs.widgets.CustomAlertDialogBuilder
 import sushi.hardcore.droidfs.widgets.ZoomableImageView
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import kotlin.math.abs
 
-class ImageViewer: FileViewerActivity(true) {
+class ImageViewer: FileViewerActivity() {
     companion object {
         private const val hideDelay: Long = 3000
         private const val MIN_SWIPE_DISTANCE = 150
@@ -39,12 +39,15 @@ class ImageViewer: FileViewerActivity(true) {
 
     class ImageViewModel : ViewModel() {
         var rotationAngle: Float = 0f
-        var imageLoader: ImageLoader? = null
     }
 
+    override val blackBackground: Boolean = true
     private lateinit var fileName: String
     private lateinit var handler: Handler
     private val imageViewModel: ImageViewModel by viewModels()
+    private val imageLoader: ImageLoader? by lazy {
+        (application as VolumeManagerApp).volumeManager.getImageLoader(volumeId)
+    }
     private var imageRequestBuilder: ImageRequest.Builder? = null
     private var x1 = 0F
     private var x2 = 0F
@@ -70,10 +73,6 @@ class ImageViewer: FileViewerActivity(true) {
         binding = ActivityImageViewerBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.overlay.fitsSystemWindows = true
-        if (imageViewModel.imageLoader == null) {
-            imageViewModel.imageLoader = ImageLoader.Builder(this).diskCache(null)
-                .fileSystem(EncryptedFileReaderFileSystem(encryptedVolume)).build()
-        }
         handler = Handler(mainLooper)
         binding.imageViewer.setOnInteractionListener(object : ZoomableImageView.OnInteractionListener {
             override fun onSingleTap(event: MotionEvent?) {
@@ -105,8 +104,7 @@ class ImageViewer: FileViewerActivity(true) {
             }
         })
         binding.imageDelete.setOnClickListener {
-            CustomAlertDialogBuilder(this, theme)
-                .keepFullScreen()
+            MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.warning)
                 .setPositiveButton(R.string.ok) { _, _ ->
                     lifecycleScope.launch {
@@ -117,8 +115,7 @@ class ImageViewer: FileViewerActivity(true) {
                                 loadImage(true)
                             }
                         } else {
-                            CustomAlertDialogBuilder(this@ImageViewer, theme)
-                                .keepFullScreen()
+                            MaterialAlertDialogBuilder(this@ImageViewer)
                                 .setTitle(R.string.error)
                                 .setMessage(getString(R.string.remove_failed, fileName))
                                 .setPositiveButton(R.string.ok, null)
@@ -179,7 +176,7 @@ class ImageViewer: FileViewerActivity(true) {
         if (imageViewModel.rotationAngle.mod(360f) != 0f) {
             rotateImage()
         } else {
-            imageViewModel.imageLoader!!.enqueue(imageRequestBuilder!!.build())
+            imageLoader!!.enqueue(imageRequestBuilder!!.build())
         }
     }
 
@@ -230,14 +227,13 @@ class ImageViewer: FileViewerActivity(true) {
 
     private fun rotateImage() {
         orientationTransformation = OrientationTransformation(imageViewModel.rotationAngle).also {
-            imageViewModel.imageLoader!!.enqueue(imageRequestBuilder!!.transformations(it).build())
+            imageLoader!!.enqueue(imageRequestBuilder!!.transformations(it).build())
         }
     }
 
     private fun askSaveRotation(callback: () -> Unit){
         if (imageViewModel.rotationAngle.mod(360f) != 0f && !slideshowActive) {
-            CustomAlertDialogBuilder(this, theme)
-                .keepFullScreen()
+            MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.warning)
                 .setMessage(R.string.ask_save_img_rotated)
                 .setNegativeButton(R.string.no) { _, _ -> callback() }
@@ -255,16 +251,14 @@ class ImageViewer: FileViewerActivity(true) {
                                 Toast.makeText(this, R.string.image_saved_successfully, Toast.LENGTH_SHORT).show()
                                 callback()
                             } else {
-                                CustomAlertDialogBuilder(this, theme)
-                                    .keepFullScreen()
+                                MaterialAlertDialogBuilder(this)
                                     .setTitle(R.string.error)
                                     .setMessage(R.string.file_write_failed)
                                     .setPositiveButton(R.string.ok, null)
                                     .show()
                             }
                         } else {
-                            CustomAlertDialogBuilder(this, theme)
-                                .keepFullScreen()
+                            MaterialAlertDialogBuilder(this)
                                 .setTitle(R.string.error)
                                 .setMessage(R.string.bitmap_compress_failed)
                                 .setPositiveButton(R.string.ok, null)

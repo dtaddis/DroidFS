@@ -3,17 +3,6 @@ pluginManagement {
         google()
         mavenCentral()
     }
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id == "com.android.application" ||
-                requested.id.id == "com.android.library") {
-                useVersion("8.13.2")
-            } else if (requested.id.id == "org.jetbrains.kotlin.android") {
-                useVersion("2.3.10")
-            }
-        }
-    }
 }
-include ':app', ':libpdfviewer'
-project(':libpdfviewer').projectDir = file('libpdfviewer/app')
+include ':app', ':libpdfviewer:app'
 rootProject.name = "DroidFS-Video"

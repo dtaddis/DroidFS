@@ -1,3 +1,11 @@
+-dontobfuscate
+# Suppress warnings for FingerprintManager classes that are only available on API 23+
+-dontwarn android.hardware.fingerprint.FingerprintManager
+-dontwarn android.hardware.fingerprint.FingerprintManager$AuthenticationCallback
+-dontwarn android.hardware.fingerprint.FingerprintManager$CryptoObject
+# Suppress warnings for CameraX extension classes that are only implemented by
+# device vendors at runtime (not shipped in the library)
+-dontwarn androidx.camera.extensions.impl.**
 -keepattributes SourceFile,LineNumberTable
 
 -keep class sushi.hardcore.droidfs.SettingsActivity$**
@@ -9,14 +17,11 @@
     void writePacket(byte[]);
     void seek(long);
 }
-# Required for Intent.getParcelableExtra() to work on Android 13
--keep class sushi.hardcore.droidfs.VolumeData {
-    public int describeContents();
+-keep class app.grapheneos.pdfviewer.PdfViewer$Channel { *; }
+# Keep all JNI native methods and their classes
+-keepclasseswithmembernames class * {
+    native <methods>;
 }
--keep class sushi.hardcore.droidfs.VolumeData$* {
-    static public android.os.Parcelable$Creator CREATOR;
-}
-
 # LibVLC uses JNI and reflection internally; keep its Java surface intact when
 # shrinking release builds.
 -keep class org.videolan.** { *; }
@@ -27,3 +32,8 @@
     native <methods>;
 }
 -dontwarn org.videolan.**
+
+# Required for Parcelable CREATOR fields to not be removed by R8
+-keepclassmembers class * implements android.os.Parcelable {
+    static ** CREATOR;
+}

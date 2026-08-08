@@ -44,6 +44,11 @@ jobs:
           go-version: "1.22.x"
           cache: false
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
         with:
@@ -52,12 +57,13 @@ jobs:
       - name: Install native build prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install --yes build-essential pkg-config npm
+          sudo apt-get install --yes build-essential pkg-config
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
-            "platforms;android-35" \
-            "build-tools;35.0.0" \
-            "ndk;25.2.9519653"
-          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> "$GITHUB_ENV"
+            "platforms;android-37" \
+            "build-tools;37.0.0" \
+            "cmake;4.1.2" \
+            "ndk;28.2.13676358"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.2.13676358" >> "$GITHUB_ENV"
 
       - name: Build FFmpeg for ${{ matrix.abi }}
         run: ./app/ffmpeg/build.sh "${{ matrix.abi }}"
@@ -94,7 +100,7 @@ jobs:
           apk="$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk' -print -quit)"
           test -n "$apk"
           signed="release-artifacts/$(basename "${apk%.apk}")-signed.apk"
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" sign \
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" sign \
             --ks "$keystore" \
             --ks-type PKCS12 \
             --ks-key-alias "$RELEASE_KEY_ALIAS" \
@@ -102,7 +108,7 @@ jobs:
             --key-pass env:RELEASE_KEYSTORE_PASSWORD \
             --out "$signed" \
             "$apk"
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify \
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify \
             --verbose \
             --print-certs \
             "$signed"
@@ -149,6 +155,10 @@ jobs:
           controls and optional live Smooth Slo-Mo frame interpolation on
           Vulkan-capable devices. It also fixes Smooth Slo-Mo interactions with
           fit/fill sizing and removes startup I/O and rate-setting regressions.
+
+          It also incorporates the latest upstream DroidFS improvements,
+          including target API 36, FFmpeg 9, thumbnail loading, camera fixes,
+          dependency updates and localization work.
 
           Both gocryptfs and CryFS support are included.
 

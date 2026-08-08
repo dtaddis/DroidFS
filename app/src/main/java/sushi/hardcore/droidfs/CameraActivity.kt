@@ -11,6 +11,7 @@ import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.Surface
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.LinearInterpolator
 import android.view.animation.RotateAnimation
@@ -18,7 +19,7 @@ import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.appcompat.widget.SwitchCompat
+import com.google.android.material.materialswitch.MaterialSwitch
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
@@ -41,7 +42,11 @@ import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -52,7 +57,6 @@ import sushi.hardcore.droidfs.util.finishOnClose
 import sushi.hardcore.droidfs.video_recording.AsynchronousSeekableWriter
 import sushi.hardcore.droidfs.video_recording.FFmpegMuxer
 import sushi.hardcore.droidfs.video_recording.SeekableWriter
-import sushi.hardcore.droidfs.widgets.CustomAlertDialogBuilder
 import sushi.hardcore.droidfs.widgets.EditTextDialog
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -120,7 +124,24 @@ class CameraActivity : BaseActivity(), SensorOrientationListener.Listener {
         super.onCreate(savedInstanceState)
         binding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        supportActionBar?.hide()
+
+        val originalTopMargin = (binding.topControls.layoutParams as ViewGroup.MarginLayoutParams).topMargin
+        ViewCompat.setOnApplyWindowInsetsListener(binding.topControls) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                topMargin = originalTopMargin + insets.top
+            }
+            windowInsets
+        }
+        val originalBottomMargin = (binding.bottomControls.layoutParams as ViewGroup.MarginLayoutParams).bottomMargin
+        ViewCompat.setOnApplyWindowInsetsListener(binding.bottomControls) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = originalBottomMargin + insets.bottom
+            }
+            windowInsets
+        }
+
         encryptedVolume = (application as VolumeManagerApp).volumeManager.getVolume(
             intent.getIntExtra("volumeId", -1)
         )!!
@@ -163,7 +184,7 @@ class CameraActivity : BaseActivity(), SensorOrientationListener.Listener {
                             else -> throw IllegalArgumentException("Invalid quality: $it")
                         }
                     }.toTypedArray()
-                    CustomAlertDialogBuilder(this, theme)
+                    MaterialAlertDialogBuilder(this)
                         .setTitle("Choose quality:")
                         .setSingleChoiceItems(qualityNames, currentQualityIndex) { dialog, which ->
                             currentQualityIndex = which
@@ -174,7 +195,7 @@ class CameraActivity : BaseActivity(), SensorOrientationListener.Listener {
                         .show()
                 }
             } else {
-                CustomAlertDialogBuilder(this, theme)
+                MaterialAlertDialogBuilder(this)
                     .setTitle(R.string.camera_optimization)
                     .setSingleChoiceItems(
                         arrayOf(getString(R.string.maximize_quality), getString(R.string.minimize_latency)),
@@ -198,7 +219,7 @@ class CameraActivity : BaseActivity(), SensorOrientationListener.Listener {
         }
         binding.imageRatio.setOnClickListener {
             if (isInVideoMode) {
-                CustomAlertDialogBuilder(this, theme)
+                MaterialAlertDialogBuilder(this)
                     .setTitle("Aspect ratio:")
                     .setSingleChoiceItems(arrayOf("16:9", "4:3"), currentAspectRatioIndex) { dialog, which ->
                         currentAspectRatioIndex = which
@@ -209,7 +230,7 @@ class CameraActivity : BaseActivity(), SensorOrientationListener.Listener {
                     .show()
             } else {
                 resolutions?.let {
-                    CustomAlertDialogBuilder(this, theme)
+                    MaterialAlertDialogBuilder(this)
                         .setTitle(R.string.choose_resolution)
                         .setSingleChoiceItems(it.map { size -> size.toString() }.toTypedArray(), currentResolutionIndex) { dialog, which ->
                             currentResolution = resolutions!![which]
@@ -228,7 +249,7 @@ class CameraActivity : BaseActivity(), SensorOrientationListener.Listener {
             if (timerDuration != 0) {
                 dialog.setSelectedText(timerDuration.toString())
             }
-            val switch = dialog.root.findViewById<SwitchCompat>(R.id.switch_repeat)
+            val switch = dialog.root.findViewById<MaterialSwitch>(R.id.switch_repeat)
             switch.isChecked = repeat
             dialog.onSubmit { it ->
                 try {
@@ -272,6 +293,7 @@ class CameraActivity : BaseActivity(), SensorOrientationListener.Listener {
             })
         }
         binding.imageModeSwitch.setOnClickListener {
+            cancelTimer()
             isInVideoMode = !isInVideoMode
             rebindUseCases()
             binding.imageFlash.setImageResource(if (isInVideoMode) {
@@ -297,6 +319,7 @@ class CameraActivity : BaseActivity(), SensorOrientationListener.Listener {
             })
         }
         binding.imageCameraSwitch.setOnClickListener {
+            cancelTimer()
             isBackCamera = if (isBackCamera) {
                 binding.imageCameraSwitch.setImageResource(R.drawable.icon_camera_back)
                 false
@@ -311,10 +334,11 @@ class CameraActivity : BaseActivity(), SensorOrientationListener.Listener {
             }
             resolutions = null
             qualities = null
+            currentQualityIndex = -1
             setupCamera()
         }
         binding.takePhotoButton.onClick = ::onClickTakePhoto
-        binding.recordVideoButton.setOnClickListener { onClickRecordVideo() }
+        binding.recordVideoButton.onClick = ::onClickRecordVideo
         orientedIcons = listOf(binding.imageRatio, binding.imageTimer, binding.imageCaptureMode, binding.imageFlash, binding.imageModeSwitch, binding.imageCameraSwitch)
         sensorOrientationListener = SensorOrientationListener(this)
 
@@ -351,7 +375,7 @@ class CameraActivity : BaseActivity(), SensorOrientationListener.Listener {
                     permissionsGranted = true
                     setupCamera()
                 } else {
-                    CustomAlertDialogBuilder(this, theme)
+                    MaterialAlertDialogBuilder(this)
                         .setTitle(R.string.error)
                         .setMessage(R.string.camera_perm_needed)
                         .setCancelable(false)
@@ -464,6 +488,15 @@ class CameraActivity : BaseActivity(), SensorOrientationListener.Listener {
         return outputPath
     }
 
+    private fun cancelTimer() {
+        if (timerJob?.isActive == true) {
+            timerJob?.cancel()
+        }
+        binding.textTimer.visibility = View.GONE
+        binding.takePhotoButton.release()
+        binding.recordVideoButton.release()
+    }
+
     private fun startTimerThen(action: () -> Unit) {
         if (timerDuration > 0){
             binding.textTimer.visibility = View.VISIBLE
@@ -494,20 +527,20 @@ class CameraActivity : BaseActivity(), SensorOrientationListener.Listener {
                             if (repeat) {
                                 startTimerThen(::takePhoto)
                             } else {
-                                binding.takePhotoButton.onPhotoTaken()
+                                binding.takePhotoButton.release()
                             }
                         } else {
-                            CustomAlertDialogBuilder(this@CameraActivity, theme)
+                            MaterialAlertDialogBuilder(this@CameraActivity)
                                 .setTitle(R.string.error)
                                 .setMessage(R.string.picture_save_failed)
                                 .setPositiveButton(R.string.ok, null)
                                 .show()
-                            binding.takePhotoButton.onPhotoTaken()
+                            binding.takePhotoButton.release()
                         }
                     }
 
                     override fun onError(exception: ImageCaptureException) {
-                        binding.takePhotoButton.onPhotoTaken()
+                        binding.takePhotoButton.release()
                         Toast.makeText(applicationContext, exception.message, Toast.LENGTH_SHORT).show()
                     }
                 })
@@ -515,11 +548,8 @@ class CameraActivity : BaseActivity(), SensorOrientationListener.Listener {
     }
 
     private fun onClickTakePhoto() {
-        val job = timerJob
-        if (job != null && job.isActive) {
-            job.cancel()
-            binding.textTimer.visibility = View.GONE
-            binding.takePhotoButton.onPhotoTaken()
+        if (timerJob?.isActive == true) {
+            cancelTimer()
         } else {
             startTimerThen(::takePhoto)
         }
@@ -529,46 +559,49 @@ class CameraActivity : BaseActivity(), SensorOrientationListener.Listener {
     private fun onClickRecordVideo() {
         if (isRecording) {
             videoRecording?.stop()
-        } else if (!(timerJob?.isActive ?: false)) {
-            val path = getOutputPath(true)
-            val fileHandle = encryptedVolume.openFileWriteMode(path)
-            if (fileHandle == -1L) {
-                CustomAlertDialogBuilder(this, theme)
-                    .setTitle(R.string.error)
-                    .setMessage(R.string.file_creation_failed)
-                    .setPositiveButton(R.string.ok, null)
-                    .show()
-                return
-            }
-            val writer = AsynchronousSeekableWriter(object : SeekableWriter {
-                private var offset = 0L
-
-                override fun close() {
-                    encryptedVolume.closeFile(fileHandle)
-                }
-
-                override fun seek(offset: Long) {
-                    this.offset = offset
-                }
-
-                override fun write(buffer: ByteArray, size: Int) {
-                    offset += encryptedVolume.write(fileHandle, offset, buffer, 0, size.toLong())
-                }
-            })
-            val pendingRecording = videoRecorder!!.prepareRecording(
-                this,
-                MuxerOutputOptions(FFmpegMuxer(writer))
-            ).also {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                    it.withAudioEnabled()
-                }
-            }
+        } else if (timerJob?.isActive == true) {
+            cancelTimer()
+        } else {
             startTimerThen {
+                val path = getOutputPath(true)
+                val fileHandle = encryptedVolume.openFileWriteMode(path)
+                if (fileHandle == -1L) {
+                    MaterialAlertDialogBuilder(this)
+                        .setTitle(R.string.error)
+                        .setMessage(R.string.file_creation_failed)
+                        .setPositiveButton(R.string.ok, null)
+                        .show()
+                    return@startTimerThen
+                }
+                val writer = AsynchronousSeekableWriter(object : SeekableWriter {
+                    private var offset = 0L
+
+                    override fun close() {
+                        encryptedVolume.closeFile(fileHandle)
+                    }
+
+                    override fun seek(offset: Long) {
+                        this.offset = offset
+                    }
+
+                    override fun write(buffer: ByteArray, size: Int) {
+                        offset += encryptedVolume.write(fileHandle, offset, buffer, 0, size.toLong())
+                    }
+                })
+                val pendingRecording = videoRecorder!!.prepareRecording(
+                    this,
+                    MuxerOutputOptions(FFmpegMuxer(writer))
+                ).also {
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                        it.withAudioEnabled()
+                    }
+                }
                 writer.start()
                 videoRecording = pendingRecording.start(executor) {
                     val buttons = arrayOf(binding.imageCaptureMode, binding.imageRatio, binding.imageTimer, binding.imageModeSwitch, binding.imageCameraSwitch)
                     when (it) {
                         is VideoRecordEvent.Start -> {
+                            binding.recordVideoButton.release()
                             binding.recordVideoButton.setImageResource(R.drawable.stop_recording_video_button)
                             for (i in buttons) {
                                 i.isEnabled = false
@@ -585,6 +618,7 @@ class CameraActivity : BaseActivity(), SensorOrientationListener.Listener {
                             } else {
                                 Toast.makeText(applicationContext, getString(R.string.video_save_success, path), Toast.LENGTH_SHORT).show()
                             }
+                            binding.recordVideoButton.release()
                             binding.recordVideoButton.setImageResource(R.drawable.record_video_button)
                             for (i in buttons) {
                                 i.isEnabled = true

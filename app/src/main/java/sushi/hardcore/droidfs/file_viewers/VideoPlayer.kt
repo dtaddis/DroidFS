@@ -13,19 +13,20 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import sushi.hardcore.droidfs.R
 import sushi.hardcore.droidfs.databinding.ActivityVideoPlayerBinding
-import sushi.hardcore.droidfs.widgets.CustomAlertDialogBuilder
 import sushi.hardcore.droidfs.widgets.PlayerControl
 import sushi.hardcore.droidfs.widgets.PlayerControlFeedbackListener
 import sushi.hardcore.droidfs.vlc.VlcScalingMode
 import java.io.File
 import kotlin.math.roundToInt
 
-class VideoPlayer : FileViewerActivity(true) {
+class VideoPlayer : FileViewerActivity() {
+    override val blackBackground = true
     private lateinit var binding: ActivityVideoPlayerBinding
     private val handler = Handler(Looper.getMainLooper())
     private var controlsVisible = true
@@ -339,7 +340,7 @@ class VideoPlayer : FileViewerActivity(true) {
             kotlin.math.abs(PLAYBACK_RATES[it] - currentRate)
         } ?: NORMAL_PLAYBACK_RATE_INDEX
 
-        CustomAlertDialogBuilder(this, theme)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.playback_speed)
             .setSingleChoiceItems(labels, selectedIndex) { dialog, which ->
                 val rate = PLAYBACK_RATES[which]
@@ -665,7 +666,7 @@ class VideoPlayer : FileViewerActivity(true) {
     }
 
     private fun showPlaybackError(message: String) {
-        CustomAlertDialogBuilder(this, theme)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.error)
             .setMessage(message)
             .setCancelable(false)

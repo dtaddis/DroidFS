@@ -5,11 +5,13 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.Menu
 import android.view.MenuItem
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.core.view.ViewCompat
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import sushi.hardcore.droidfs.R
-import sushi.hardcore.droidfs.widgets.CustomAlertDialogBuilder
 import java.io.File
 
 class TextEditor: FileViewerActivity() {
@@ -33,7 +35,7 @@ class TextEditor: FileViewerActivity() {
                     checkSaveAndExit()
                 }
             } catch (e: OutOfMemoryError){
-                CustomAlertDialogBuilder(this, theme)
+                MaterialAlertDialogBuilder(this)
                     .setTitle(R.string.error)
                     .setMessage(R.string.outofmemoryerror_msg)
                     .setCancelable(false)
@@ -48,6 +50,10 @@ class TextEditor: FileViewerActivity() {
         } else {
             setContentView(R.layout.activity_text_editor)
         }
+        applyInsets()
+        ViewCompat.requestApplyInsets((findViewById<ViewGroup>(android.R.id.content)))
+        setSupportActionBar(findViewById(R.id.toolbar))
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         editor = findViewById(R.id.text_editor)
         editor.setText(fileContent)
         editor.addTextChangedListener(object: TextWatcher {
@@ -86,7 +92,7 @@ class TextEditor: FileViewerActivity() {
 
     private fun checkSaveAndExit(){
         if (changedSinceLastSave){
-            CustomAlertDialogBuilder(this, theme)
+            MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.warning)
                 .setMessage(R.string.ask_save)
                 .setPositiveButton(R.string.save) { _, _ ->
