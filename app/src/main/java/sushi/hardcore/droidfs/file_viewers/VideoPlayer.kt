@@ -13,7 +13,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import sushi.hardcore.droidfs.R
 import sushi.hardcore.droidfs.databinding.ActivityVideoPlayerBinding
 import sushi.hardcore.droidfs.widgets.CustomAlertDialogBuilder
@@ -30,6 +32,9 @@ class VideoPlayer : FileViewerActivity(true) {
     private var userSeeking = false
     private var playerInitialized = false
     private var orientationLocked = false
+    private var playlistNavigationInProgress = false
+    private var smoothSloMoStarting = false
+    private var smoothSloMoEnabled = false
     private var abStartMs: Long? = null
     private var abEndMs: Long? = null
 
@@ -98,6 +103,18 @@ class VideoPlayer : FileViewerActivity(true) {
             binding.videoPlayer.playPause()
             updatePlaybackControls()
         }
+        binding.buttonPrevious.setOnClickListener {
+            navigatePlaylist(forward = false)
+        }
+        binding.buttonNext.setOnClickListener {
+            navigatePlaylist(forward = true)
+        }
+        binding.buttonPlaybackSpeed.setOnClickListener {
+            showPlaybackSpeedDialog()
+        }
+        binding.buttonSmoothSloMo.setOnClickListener {
+            toggleSmoothSloMo()
+        }
         binding.buttonRepeatMode.setOnClickListener {
             cycleRepeatMode()
         }
@@ -139,6 +156,7 @@ class VideoPlayer : FileViewerActivity(true) {
             binding.videoPlayer.initialize(applicationContext)
             playerInitialized = true
             binding.videoPlayer.setScalingMode(currentScalingMode())
+            binding.videoPlayer.setPlaybackRate(currentPlaybackRate())
         } catch (e: Throwable) {
             showPlaybackError(getString(R.string.video_playback_init_failed))
             return
@@ -146,6 +164,8 @@ class VideoPlayer : FileViewerActivity(true) {
 
         updateRepeatModeButton()
         updateScalingModeButton()
+        updatePlaybackSpeedButton()
+        updateSmoothSloMoButton()
         updateOrientationLockButton()
         updateAbRepeatUi()
         loadCurrentFile()
@@ -165,7 +185,7 @@ class VideoPlayer : FileViewerActivity(true) {
         super.onDestroy()
     }
 
-    private fun loadCurrentFile() {
+    private fun loadCurrentFile(startPositionMs: Long? = null) {
         clearAbRepeat(showToast = false)
         val filePath = fileViewerViewModel.filePath!!
         binding.textFileName.text = File(filePath).name
@@ -191,8 +211,10 @@ class VideoPlayer : FileViewerActivity(true) {
             return
         }
         try {
-            binding.videoPlayer.load(mediaSource)
+            binding.videoPlayer.load(mediaSource, startPositionMs)
             binding.videoPlayer.setScalingMode(currentScalingMode())
+            smoothSloMoEnabled = false
+            updateSmoothSloMoButton()
         } catch (e: Throwable) {
             mediaSource.close()
             showPlaybackError(getString(R.string.video_load_failed))
@@ -279,6 +301,161 @@ class VideoPlayer : FileViewerActivity(true) {
             .apply()
         updateRepeatModeButton()
         Toast.makeText(this, repeatModeLabel(nextMode), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun navigatePlaylist(forward: Boolean) {
+        if (playlistNavigationInProgress) {
+            return
+        }
+        playlistNavigationInProgress = true
+        updatePlaylistNavigationButtons()
+        lifecycleScope.launch {
+            try {
+                createPlaylist()
+                if (fileViewerViewModel.playlist.isEmpty()) {
+                    return@launch
+                }
+                playlistNext(forward)
+                loadCurrentFile()
+            } finally {
+                playlistNavigationInProgress = false
+                updatePlaylistNavigationButtons()
+            }
+        }
+    }
+
+    private fun updatePlaylistNavigationButtons() {
+        val enabled = !playlistNavigationInProgress
+        binding.buttonPrevious.isEnabled = enabled
+        binding.buttonNext.isEnabled = enabled
+        binding.buttonPrevious.alpha = if (enabled) 1f else 0.45f
+        binding.buttonNext.alpha = if (enabled) 1f else 0.45f
+    }
+
+    private fun showPlaybackSpeedDialog() {
+        val currentRate = currentPlaybackRate()
+        val labels = PLAYBACK_RATES.map(::formatPlaybackRate).toTypedArray()
+        val selectedIndex = PLAYBACK_RATES.indices.minByOrNull {
+            kotlin.math.abs(PLAYBACK_RATES[it] - currentRate)
+        } ?: NORMAL_PLAYBACK_RATE_INDEX
+
+        CustomAlertDialogBuilder(this, theme)
+            .setTitle(R.string.playback_speed)
+            .setSingleChoiceItems(labels, selectedIndex) { dialog, which ->
+                val rate = PLAYBACK_RATES[which]
+                sharedPrefs.edit()
+                    .putFloat(PREF_PLAYBACK_RATE, rate)
+                    .apply()
+                if (rate >= 1f && (smoothSloMoEnabled || smoothSloMoStarting)) {
+                    disableSmoothSloMo()
+                }
+                binding.videoPlayer.setPlaybackRate(rate)
+                updatePlaybackSpeedButton()
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun currentPlaybackRate(): Float {
+        val savedRate = sharedPrefs.getFloat(
+            PREF_PLAYBACK_RATE,
+            PLAYBACK_RATES[NORMAL_PLAYBACK_RATE_INDEX]
+        )
+        return PLAYBACK_RATES.minByOrNull { kotlin.math.abs(it - savedRate) }
+            ?: PLAYBACK_RATES[NORMAL_PLAYBACK_RATE_INDEX]
+    }
+
+    private fun updatePlaybackSpeedButton() {
+        val label = formatPlaybackRate(currentPlaybackRate())
+        binding.buttonPlaybackSpeed.text = label
+        binding.buttonPlaybackSpeed.contentDescription =
+            getString(R.string.playback_speed_value, label)
+    }
+
+    private fun formatPlaybackRate(rate: Float): String {
+        val number = if (rate % 1f == 0f) {
+            rate.toInt().toString()
+        } else {
+            rate.toString().trimEnd('0').trimEnd('.')
+        }
+        return getString(R.string.playback_rate_format, number)
+    }
+
+    private fun toggleSmoothSloMo() {
+        if (smoothSloMoStarting) {
+            return
+        }
+        if (smoothSloMoEnabled) {
+            disableSmoothSloMo()
+            return
+        }
+        if (currentPlaybackRate() >= 1f) {
+            Toast.makeText(
+                this,
+                R.string.smooth_slo_mo_select_slow_speed,
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+        smoothSloMoStarting = true
+        updateSmoothSloMoButton()
+        Toast.makeText(this, R.string.smooth_slo_mo_warming_up, Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            val modelDirectory = try {
+                withContext(Dispatchers.IO) {
+                    // Legacy generated frames can be expensive to remove. Only do this when the
+                    // feature is requested so ordinary video startup never competes for storage.
+                    File(cacheDir, LEGACY_SMOOTH_SLO_MO_CACHE_DIRECTORY).deleteRecursively()
+                    LiveSloMoEngine.prepareModel(applicationContext)
+                }
+            } catch (_: Throwable) {
+                smoothSloMoStarting = false
+                updateSmoothSloMoButton()
+                Toast.makeText(
+                    this@VideoPlayer,
+                    R.string.smooth_slo_mo_unavailable,
+                    Toast.LENGTH_LONG
+                ).show()
+                return@launch
+            }
+            binding.videoPlayer.enableLiveSmoothSloMo(
+                binding.smoothVideoSurface,
+                binding.smoothVideoBackdrop,
+                modelDirectory
+            ) { enabled ->
+                smoothSloMoStarting = false
+                smoothSloMoEnabled = enabled
+                updateSmoothSloMoButton()
+                Toast.makeText(
+                    this@VideoPlayer,
+                    if (enabled) R.string.smooth_slo_mo_ready else R.string.smooth_slo_mo_unavailable,
+                    if (enabled) Toast.LENGTH_SHORT else Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    private fun disableSmoothSloMo() {
+        binding.videoPlayer.disableLiveSmoothSloMo()
+        smoothSloMoStarting = false
+        smoothSloMoEnabled = false
+        updateSmoothSloMoButton()
+    }
+
+    private fun updateSmoothSloMoButton() {
+        binding.buttonSmoothSloMo.isEnabled = !smoothSloMoStarting
+        binding.buttonSmoothSloMo.alpha = if (smoothSloMoStarting) 0.45f else 1f
+        binding.buttonSmoothSloMo.setText(
+            when {
+                smoothSloMoStarting -> R.string.smooth_slo_mo_starting_short
+                smoothSloMoEnabled -> R.string.smooth_slo_mo_on
+                else -> R.string.smooth_slo_mo_short
+            }
+        )
+        binding.buttonSmoothSloMo.contentDescription = getString(
+            if (smoothSloMoEnabled) R.string.smooth_slo_mo_on else R.string.smooth_slo_mo_off
+        )
     }
 
     private fun updateRepeatModeButton() {
@@ -455,7 +632,14 @@ class VideoPlayer : FileViewerActivity(true) {
     private fun onPlaybackEnded() {
         val repeatMode = sharedPrefs.getInt(PREF_REPEAT_MODE, REPEAT_MODE_ALL)
         when (repeatMode) {
-            REPEAT_MODE_ONE -> loadCurrentFile()
+            REPEAT_MODE_ONE -> {
+                if (smoothSloMoEnabled) {
+                    binding.videoPlayer.seekTo(0)
+                    binding.videoPlayer.play()
+                } else {
+                    loadCurrentFile()
+                }
+            }
             else -> lifecycleScope.launch {
                 createPlaylist()
                 if (repeatMode == REPEAT_MODE_OFF &&
@@ -492,10 +676,26 @@ class VideoPlayer : FileViewerActivity(true) {
     companion object {
         private const val PREF_REPEAT_MODE = "playerRepeatMode"
         private const val PREF_SCALING_MODE = "videoScalingMode"
+        private const val PREF_PLAYBACK_RATE = "videoPlaybackRate"
         private const val PREF_UNSAFE_EXTERNAL_OPEN = "usf_open"
         private const val REPEAT_MODE_OFF = 0
         private const val REPEAT_MODE_ONE = 1
         private const val REPEAT_MODE_ALL = 2
         private const val MIN_AB_REPEAT_DURATION_MS = 500L
+        private const val LEGACY_SMOOTH_SLO_MO_CACHE_DIRECTORY = "smooth-slo-mo"
+        private val PLAYBACK_RATES = floatArrayOf(
+            0.1f,
+            0.125f,
+            0.25f,
+            0.5f,
+            0.75f,
+            1f,
+            1.25f,
+            1.5f,
+            2f,
+            3f,
+            4f
+        )
+        private const val NORMAL_PLAYBACK_RATE_INDEX = 5
     }
 }

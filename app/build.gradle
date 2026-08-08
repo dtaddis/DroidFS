@@ -34,8 +34,8 @@ android {
         applicationId "io.github.dtaddis.droidfsvideo"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 3702
-        versionName "2.2.0-video.2"
+        versionCode 3703
+        versionName "2.2.0-video.3"
 
         splits {
             abi {
@@ -83,6 +83,11 @@ android {
 
     buildTypes {
         release {
+            if (project.hasProperty("smoothSloMoDiagnostic")) {
+                applicationIdSuffix ".smoothdebug"
+                versionNameSuffix "-smoothdebug"
+                debuggable true
+            }
             postprocessing {
                 removeUnusedCode true
                 removeUnusedResources true
@@ -107,10 +112,33 @@ android {
 
     sourceSets {
         main {
+            assets.srcDir layout.buildDirectory.dir('generated/rifeAssets')
             java {
                 exclude 'androidx/camera/video/originals/**'
             }
         }
+    }
+}
+
+def copyRifeAssets = tasks.register('copyRifeAssets', Copy) {
+    from('rife-ncnn-vulkan/models/rife-v4.6') {
+        include 'flownet.bin', 'flownet.param'
+        into 'rife-v4.6'
+    }
+    from('rife-ncnn-vulkan/LICENSE') {
+        rename { 'RIFE-ncnn-vulkan-LICENSE.txt' }
+        into 'third-party-licenses'
+    }
+    from('rife-ncnn-vulkan/src/ncnn/LICENSE.txt') {
+        rename { 'ncnn-LICENSE.txt' }
+        into 'third-party-licenses'
+    }
+    into layout.buildDirectory.dir('generated/rifeAssets')
+}
+
+tasks.configureEach { task ->
+    if (task.name == 'preBuild') {
+        task.dependsOn(copyRifeAssets)
     }
 }
 

@@ -16,6 +16,7 @@ and build source.
 - LibVLC playback with broader container and codec support
 - User-configurable file-extension handling
 - Fit, fill, horizontal and vertical video sizing
+- Playback-speed controls and optional Vulkan-accelerated Smooth Slo-Mo
 - Repeat, playlist and A/B repeat controls
 - Swipe brightness, volume and scrubbing gestures
 - Secure range-based playback on Android 8.0 and newer

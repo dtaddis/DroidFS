@@ -14,6 +14,20 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <View
+            android:id="@+id/smooth_video_backdrop"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/fullScreenBackgroundColor"
+            android:visibility="gone" />
+
+        <TextureView
+            android:id="@+id/smooth_video_surface"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
         <sushi.hardcore.droidfs.widgets.DoubleTapOverlay
             android:id="@+id/double_tap_overlay"
             android:layout_width="match_parent"
@@ -119,10 +133,24 @@
                 android:orientation="horizontal">
 
                 <ImageButton
+                    android:id="@+id/button_previous"
+                    style="@style/ExoMediaButton"
+                    android:contentDescription="@string/previous_video"
+                    android:src="@drawable/exo_icon_previous"
+                    app:tint="@color/neutralIconTint" />
+
+                <ImageButton
                     android:id="@+id/button_play_pause"
                     style="@style/ExoMediaButton"
                     android:contentDescription="@string/play_pause"
                     android:src="@drawable/icon_pause"
+                    app:tint="@color/neutralIconTint" />
+
+                <ImageButton
+                    android:id="@+id/button_next"
+                    style="@style/ExoMediaButton"
+                    android:contentDescription="@string/next_video"
+                    android:src="@drawable/exo_icon_next"
                     app:tint="@color/neutralIconTint" />
 
                 <TextView
@@ -171,6 +199,28 @@
                         android:contentDescription="@string/repeat_mode"
                         android:src="@drawable/icon_repeat"
                         app:tint="@color/neutralIconTint" />
+
+                    <TextView
+                        android:id="@+id/button_playback_speed"
+                        android:layout_width="56dp"
+                        android:layout_height="match_parent"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:gravity="center"
+                        android:text="@string/playback_rate_normal"
+                        android:textColor="@color/textColor"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/button_smooth_slo_mo"
+                        android:layout_width="76dp"
+                        android:layout_height="match_parent"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:gravity="center"
+                        android:text="@string/smooth_slo_mo_short"
+                        android:textColor="@color/textColorSecondary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
 
                     <ImageButton
                         android:id="@+id/button_scaling_mode"
