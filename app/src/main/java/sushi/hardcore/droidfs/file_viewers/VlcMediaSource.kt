@@ -14,9 +14,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class VlcMediaSource private constructor(
     val parcelFileDescriptor: ParcelFileDescriptor,
+    path: String,
     private val closeAction: () -> Unit
 ) : Closeable {
     val fileDescriptor = parcelFileDescriptor.fileDescriptor
+    val forceSoftwareVideoDecoder = path.endsWith(".avi", ignoreCase = true)
     private val closed = AtomicBoolean()
 
     override fun close() {
@@ -85,7 +87,7 @@ class VlcMediaSource private constructor(
                 releaseBackingFile()
                 throw e
             }
-            return VlcMediaSource(pfd) {
+            return VlcMediaSource(pfd, path) {
                 try {
                     pfd.close()
                 } finally {
@@ -111,7 +113,7 @@ class VlcMediaSource private constructor(
                 return null
             }
             val pfd = exportedFile.open(ParcelFileDescriptor.MODE_READ_ONLY, true)
-            return VlcMediaSource(pfd) {
+            return VlcMediaSource(pfd, path) {
                 pfd.close()
             }
         }

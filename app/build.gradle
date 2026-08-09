@@ -38,8 +38,8 @@ android {
         applicationId "io.github.dtaddis.droidfsvideo"
         minSdkVersion 21
         targetSdkVersion 36
-        versionCode 3703
-        versionName "2.2.0-video.3"
+        versionCode 3704
+        versionName "2.2.0-video.4"
 
         buildConfigField "boolean", "CRYFS_DISABLED", "${project.ext.disableCryFS}"
         buildConfigField "boolean", "GOCRYPTFS_DISABLED", "${project.ext.disableGocryptfs}"

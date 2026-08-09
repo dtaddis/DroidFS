@@ -151,14 +151,12 @@ jobs:
           DroidFS Video is an unofficial, independently maintained DroidFS
           edition focused on improved private video playback.
 
-          This release adds selectable playback speeds, previous/next playlist
-          controls and optional live Smooth Slo-Mo frame interpolation on
-          Vulkan-capable devices. It also fixes Smooth Slo-Mo interactions with
-          fit/fill sizing and removes startup I/O and rate-setting regressions.
-
-          It also incorporates the latest upstream DroidFS improvements,
-          including target API 36, FFmpeg 9, thumbnail loading, camera fixes,
-          dependency updates and localization work.
+          This release improves playback of legacy AVI files containing Xvid
+          MPEG-4 Visual video, including packed bitstreams with B-frames. AVI
+          video now uses LibVLC's software decoder to preserve correct frame
+          ordering, non-standard fast-decoding shortcuts are disabled, and
+          LibVLC's default clock synchronization is restored. Modern video
+          containers remain hardware accelerated.
 
           Both gocryptfs and CryFS support are included.
 

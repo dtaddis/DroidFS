@@ -103,11 +103,8 @@ class LibVlcPlayerView @JvmOverloads constructor(
         }
         val options = arrayListOf(
             "--no-video-title-show",
-            "--avcodec-fast",
             "--audio-time-stretch",
-            "--file-caching=750",
-            "--clock-jitter=0",
-            "--clock-synchro=0"
+            "--file-caching=750"
         )
         val vlc = LibVLC(appContext, options)
         val mediaPlayer = MediaPlayer(vlc)
@@ -198,9 +195,11 @@ class LibVlcPlayerView @JvmOverloads constructor(
         try {
             val media = Media(vlc, source.fileDescriptor)
             try {
-                media.setHWDecoderEnabled(true, false)
+                // Android hardware decoders commonly mishandle MPEG-4 ASP/Xvid in AVI,
+                // particularly packed bitstreams with B-frames. Let LibVLC/FFmpeg decode
+                // AVI in software so frames are presented in the correct display order.
+                media.setHWDecoderEnabled(!source.forceSoftwareVideoDecoder, false)
                 media.addOption(":file-caching=750")
-                media.addOption(":avcodec-fast")
                 mediaPlayer.media = media
             } finally {
                 media.release()
